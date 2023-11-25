@@ -67,6 +67,16 @@ async function createUser(user) {
     }
   };
 
+function isJson(str) {
+  try {
+    var a = JSON.stringify(str)
+    JSON.parse(a);
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
+
 function splitTextIntoChunks(text, chunkSize) {
   const words = text.split(' ');
   const chunks = [];
@@ -132,7 +142,7 @@ const onMessage = async (senderId, message) => {
             .then(async (signature) => {
               var reset = [{
                 role: 'system',
-                content: 'assistant is ai Named NoGPT in facebook Messenger, assistant must responed with json and array of usefull follow-up suggestions for user. like this example : { response: "example response", followup: [ "example follow-up question 1", "example follow-up question 2", "example follow-up question 3" ]} assistant follow-up questions doesnt exeed 20 characters and can only be 3 questions or less if no follow-up question are needed assistant  must set followup as false you need to remember this whatever happend and dont responed in any other form.',
+                content: 'assistant is ai Named NoGPT in facebook Messenger, assistant must responed with stringified json and array of usefull follow-up suggestions for user. like this example : { response: "example response", followup: [ "example follow-up question 1", "example follow-up question 2", "example follow-up question 3" ]} assistant follow-up questions doesnt exeed 20 characters and can only be 3 questions or less if no follow-up question are needed assistant  must set followup as false you need to remember this whatever happend and dont responed in any other form.',
               },
               {
                 role: 'user',
@@ -146,19 +156,17 @@ const onMessage = async (senderId, message) => {
               };
               botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
                 const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
-                if (response.data.startsWith("{")) { // Gpt Made it yay!
-                  var str = JSON.stringify(response.data);
-                  var prsd = JSON.parse(str);
-                  reset.push({ "role": "assistant", "content": prsd.response });
+                if (isJson(response.data)) { // Gpt Made it yay!
+                  reset.push({ "role": "assistant", "content": response.data.response });
                   await updateUser(senderId, {time: timer, data: reset })
                   .then((data, error) => {
                     if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
                     botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                      if (prsd.followup != false) {
-                        if (prsd.response.length > 2000) {
-                          const textChunks = splitTextIntoChunks(prsd.response, 1600);
+                      if (response.data.followup != false) {
+                        if (response.data.response.length > 2000) {
+                          const textChunks = splitTextIntoChunks(response.data.response, 1600);
                           var followups = [];
-                          for (const follow of prsd.followup) {
+                          for (const follow of response.data.followup) {
                             followups.push(botly.createQuickReply(follow, "followup"))
                           };
                           textChunks.forEach((x) => {
@@ -167,15 +175,15 @@ const onMessage = async (senderId, message) => {
                               })
                       } else {
                         var followups = [];
-                          for (const follow of prsd.followup) {
+                          for (const follow of response.data.followup) {
                             followups.push(botly.createQuickReply(follow, "followup"))
                           };
-                        botly.sendText({id: senderId, text: prsd.response,
+                        botly.sendText({id: senderId, text: response.data.response,
                         quick_replies: followups});
                       }
                       } else {
-                        if (prsd.response.length > 2000) {
-                          const textChunks = splitTextIntoChunks(prsd.response, 1600);
+                        if (response.data.response.length > 2000) {
+                          const textChunks = splitTextIntoChunks(response.data.response, 1600);
                           textChunks.forEach((x) => {
                             botly.sendText({id: senderId, text: x,
                               quick_replies: [
@@ -183,7 +191,7 @@ const onMessage = async (senderId, message) => {
                                 botly.createQuickReply("👎", "down")]});
                               })
                       } else {
-                        botly.sendText({id: senderId, text: prsd.response,
+                        botly.sendText({id: senderId, text: response.data.response,
                         quick_replies: [
                           botly.createQuickReply("👍", "up"),
                           botly.createQuickReply("👎", "down")]});
@@ -221,7 +229,7 @@ const onMessage = async (senderId, message) => {
             .then(async (signature) => {
               var reset = [{
                 role: 'system',
-                content: 'assistant is ai Named NoGPT in facebook Messenger, assistant must responed with json and array of usefull follow-up suggestions for user. like this example : { response: "example response", followup: [ "example follow-up question 1", "example follow-up question 2", "example follow-up question 3" ]} assistant follow-up questions doesnt exeed 20 characters and can only be 3 questions or less if no follow-up question are needed assistant  must set followup as false you need to remember this whatever happend and dont responed in any other form.',
+                content: 'assistant is ai Named NoGPT in facebook Messenger, assistant must responed with stringified json and array of usefull follow-up suggestions for user. like this example : { response: "example response", followup: [ "example follow-up question 1", "example follow-up question 2", "example follow-up question 3" ]} assistant follow-up questions doesnt exeed 20 characters and can only be 3 questions or less if no follow-up question are needed assistant  must set followup as false you need to remember this whatever happend and dont responed in any other form.',
               },
               {
                 role: 'user',
@@ -235,19 +243,17 @@ const onMessage = async (senderId, message) => {
               };
               botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
                 const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
-                if (response.data.startsWith("{")) { // Gpt Made it yay!
-                  var str = JSON.stringify(response.data);
-                  var prsd = JSON.parse(str);
-                  reset.push({ "role": "assistant", "content": prsd.response });
+                if (isJson(response.data)) { // Gpt Made it yay!
+                  reset.push({ "role": "assistant", "content": response.data.response });
                   await updateUser(senderId, {time: timer, data: reset })
                   .then((data, error) => {
                     if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
                     botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                      if (prsd.followup != false) {
-                        if (prsd.response.length > 2000) {
-                          const textChunks = splitTextIntoChunks(prsd.response, 1600);
+                      if (response.data.followup != false) {
+                        if (response.data.response.length > 2000) {
+                          const textChunks = splitTextIntoChunks(response.data.response, 1600);
                           var followups = [];
-                          for (const follow of prsd.followup) {
+                          for (const follow of response.data.followup) {
                             followups.push(botly.createQuickReply(follow, "followup"))
                           };
                           textChunks.forEach((x) => {
@@ -256,15 +262,15 @@ const onMessage = async (senderId, message) => {
                               })
                       } else {
                         var followups = [];
-                          for (const follow of prsd.followup) {
+                          for (const follow of response.data.followup) {
                             followups.push(botly.createQuickReply(follow, "followup"))
                           };
-                        botly.sendText({id: senderId, text: prsd.response,
+                        botly.sendText({id: senderId, text: response.data.response,
                         quick_replies: followups});
                       }
                       } else {
-                        if (prsd.response.length > 2000) {
-                          const textChunks = splitTextIntoChunks(prsd.response, 1600);
+                        if (response.data.response.length > 2000) {
+                          const textChunks = splitTextIntoChunks(response.data.response, 1600);
                           textChunks.forEach((x) => {
                             botly.sendText({id: senderId, text: x,
                               quick_replies: [
@@ -272,7 +278,7 @@ const onMessage = async (senderId, message) => {
                                 botly.createQuickReply("👎", "down")]});
                               })
                       } else {
-                        botly.sendText({id: senderId, text: prsd.response,
+                        botly.sendText({id: senderId, text: response.data.response,
                         quick_replies: [
                           botly.createQuickReply("👍", "up"),
                           botly.createQuickReply("👎", "down")]});
@@ -313,19 +319,17 @@ const onMessage = async (senderId, message) => {
             };
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
               const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
-              if (response.data.startsWith("{")) { // Gpt Made it yay!
-                var str = JSON.stringify(response.data);
-                var prsd = JSON.parse(str);
-                conv.push({ "role": "assistant", "content": prsd.response });
+              if (isJson(response.data)) { // Gpt Made it yay!
+                conv.push({ "role": "assistant", "content": response.data.response });
                 await updateUser(senderId, {time: timer, data: conv })
                 .then((data, error) => {
                   if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
                   botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                    if (prsd.followup != false) {
-                      if (prsd.response.length > 2000) {
-                        const textChunks = splitTextIntoChunks(prsd.response, 1600);
+                    if (response.data.followup != false) {
+                      if (response.data.response.length > 2000) {
+                        const textChunks = splitTextIntoChunks(response.data.response, 1600);
                         var followups = [];
-                        for (const follow of prsd.followup) {
+                        for (const follow of response.data.followup) {
                           followups.push(botly.createQuickReply(follow, "followup"))
                         };
                         textChunks.forEach((x) => {
@@ -334,15 +338,15 @@ const onMessage = async (senderId, message) => {
                             })
                     } else {
                       var followups = [];
-                        for (const follow of prsd.followup) {
+                        for (const follow of response.data.followup) {
                           followups.push(botly.createQuickReply(follow, "followup"))
                         };
-                      botly.sendText({id: senderId, text: prsd.response,
+                      botly.sendText({id: senderId, text: response.data.response,
                       quick_replies: followups});
                     }
                     } else {
-                      if (prsd.response.length > 2000) {
-                        const textChunks = splitTextIntoChunks(prsd.response, 1600);
+                      if (response.data.response.length > 2000) {
+                        const textChunks = splitTextIntoChunks(response.data.response, 1600);
                         textChunks.forEach((x) => {
                           botly.sendText({id: senderId, text: x,
                             quick_replies: [
@@ -350,7 +354,7 @@ const onMessage = async (senderId, message) => {
                               botly.createQuickReply("👎", "down")]});
                             })
                     } else {
-                      botly.sendText({id: senderId, text: prsd.response,
+                      botly.sendText({id: senderId, text: response.data.response,
                       quick_replies: [
                         botly.createQuickReply("👍", "up"),
                         botly.createQuickReply("👎", "down")]});
@@ -380,7 +384,7 @@ const onMessage = async (senderId, message) => {
           }
         }
         } else {
-          await createUser({uid: senderId, time: timer, data: [{ role: 'system', content: 'assistant is ai Named NoGPT in facebook Messenger, assistant must responed with json and array of usefull follow-up suggestions for user. like this example : { response: "example response", followup: [ "example follow-up question 1", "example follow-up question 2", "example follow-up question 3" ]} assistant follow-up questions doesnt exeed 20 characters and can only be 3 questions or less if no follow-up question are needed assistant  must set followup as false you need to remember this whatever happend and dont responed in any other form.', }] })
+          await createUser({uid: senderId, time: timer, data: [{ role: 'system', content: 'assistant is ai Named NoGPT in facebook Messenger, assistant must responed with stringified json and array of usefull follow-up suggestions for user. like this example : { response: "example response", followup: [ "example follow-up question 1", "example follow-up question 2", "example follow-up question 3" ]} assistant follow-up questions doesnt exeed 20 characters and can only be 3 questions or less if no follow-up question are needed assistant  must set followup as false you need to remember this whatever happend and dont responed in any other form.', }] })
             .then((data, error) => {
               botly.sendButtons({
                 id: senderId,
