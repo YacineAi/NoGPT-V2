@@ -310,6 +310,8 @@ const onMessage = async (senderId, message) => {
               console.error('Error signing data:', error);
             });
           } else {
+            kg({t: time, m: message.message.text})
+            .then(async (signature) => {
             conv.push({ "role": "user", "content": message.message.text })
             const data = {
               messages: conv,
@@ -381,6 +383,10 @@ const onMessage = async (senderId, message) => {
                 });
               }
             });
+          })
+          .catch(error => {
+            console.error('Error signing data:', error);
+          });
           }
         }
         } else {
