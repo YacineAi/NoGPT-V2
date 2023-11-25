@@ -105,9 +105,6 @@ const kg = async (t) => {
 };
 
 /* ----- HANDELS ----- */
-const headers = {
-  'Content-Type': 'application/json'
-};
 
 const headers2 = {
   "content-type": 'text/plain;charset=UTF-8',
@@ -139,7 +136,8 @@ const onMessage = async (senderId, message) => {
                 sign: signature,
               };
               botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-                const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
+                try {
+                  const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
                 reset.push({ "role": "assistant", "content": response.data });
                   await updateUser(senderId, {time: timer, data: reset })
                   .then((data, error) => {
@@ -161,111 +159,150 @@ const onMessage = async (senderId, message) => {
                               }
                             });
                           });
+                } catch (error) {
+                  if (error.response.status == 504) {
+                    botly.sendButtons({
+                      id: senderId,
+                      text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
+                      buttons: [
+                        botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
+                      ]
+                    });
+                  } else {
+                    console.log("Other ERR : ", error.response.status)
+                  }
+                }
                         });
                       })
                       .catch(error => {
                         console.error('Error signing data:', error);
                       });
-          } else {
-          var conv = user[0].data;
-          if (user[0].data.length > 10) {
-            kg({t: time, m: message.message.text})
-            .then(async (signature) => {
-              var reset = [{ role: 'user', content: message.message.text }];
-              const data = {
-                messages: reset,
-                time: time,
-                pass: null,
-                sign: signature,
-              };
-              
-              botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-                const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
-                reset.push({ "role": "assistant", "content": response.data });
-                await updateUser(senderId, {time: timer, data: reset })
-                .then((data, error) => {
-                  if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
-
-                  botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-
-                    if (response.data.length > 2000) {
-                      const textChunks = splitTextIntoChunks(response.data, 1600);
-                      textChunks.forEach((x) => {
-                        botly.sendText({id: senderId, text: x,
-                          quick_replies: [
-                            botly.createQuickReply("👍", "up"),
-                            botly.createQuickReply("👎", "down")]});
-                          })
-                        } else {
-                          botly.sendText({id: senderId, text: response.data,
-                            quick_replies: [
-                              botly.createQuickReply("👍", "up"),
-                              botly.createQuickReply("👎", "down")]});
+                    } else {
+                      var conv = user[0].data;
+                      if (user[0].data.length > 10) {
+                        kg({t: time, m: message.message.text})
+                        .then(async (signature) => {
+                          var reset = [{ role: 'user', content: message.message.text }];
+                          const data = {
+                            messages: reset,
+                            time: time,
+                            pass: null,
+                            sign: signature,
+                          };
+                          botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
+                            try {
+                              const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
+                              reset.push({ "role": "assistant", "content": response.data });
+                            await updateUser(senderId, {time: timer, data: reset})
+                            .then((data, error) => {
+                              if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
+                              botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                                if (response.data.length > 2000) {
+                                  const textChunks = splitTextIntoChunks(response.data, 1600);
+                                  textChunks.forEach((x) => {
+                                    botly.sendText({id: senderId, text: x,
+                                      quick_replies: [
+                                        botly.createQuickReply("👍", "up"),
+                                        botly.createQuickReply("👎", "down")
+                                      ]
+                                    });
+                                  });
+                                } else {
+                                  botly.sendText({id: senderId, text: response.data,
+                                    quick_replies: [
+                                      botly.createQuickReply("👍", "up"),
+                                      botly.createQuickReply("👎", "down")
+                                    ]
+                                  });
+                                }
+                              });
+                            });
+                            } catch (error) {
+                              if (error.response.status == 504) {
+                                botly.sendButtons({
+                                  id: senderId,
+                                  text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
+                                  buttons: [
+                                    botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
+                                  ]
+                                });
+                              } else {
+                                console.log("Other ERR : ", error.response.status)
+                              }
                             }
-
                           });
-                        });
-                      });
-                    })
-                    .catch(error => {
-                      console.error('Error signing data:', error);
-                    });
-            } else {
-            kg({t: time, m: message.message.text})
-            .then(async (signature) => {
-            conv.push({ "role": "user", "content": message.message.text })
-            const data = {
-              messages: conv,
-              time: time,
-              pass: null,
-              sign: signature,
-            };
-            botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-              const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
-
-              conv.push({ "role": "assistant", "content": response.data });
-
-                await updateUser(senderId, {time: timer, data: conv })
-                .then((data, error) => {
-                  if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
-
-                  botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                    if (response.data.length > 2000) {
-                      const textChunks = splitTextIntoChunks(response.data, 1600);
-                      textChunks.forEach((x) => {
-                        botly.sendText({id: senderId, text: x,
-                          quick_replies: [
-                            botly.createQuickReply("👍", "up"),
-                            botly.createQuickReply("👎", "down")]});
-                          })
-                  } else {
-                    botly.sendText({id: senderId, text: response.data,
-                    quick_replies: [
-                      botly.createQuickReply("👍", "up"),
-                      botly.createQuickReply("👎", "down")]});
-                  }
-                  });
-                });
-            });
-          })
-          .catch(error => {
-            console.error('Error signing data:', error);
-          });
-          }
-        }
-        } else {
-          await createUser({uid: senderId, time: timer, data: [] })
-            .then((data, error) => {
-              botly.sendButtons({
-                id: senderId,
-                text: "مرحبا 💬.\nأنا نوتي 🤗 روبوت ذكاء صناعي مدعم بـGPT 3.5 يمكنك سؤالي عن أي معلومات تحتاجها ✨\nاستطيع مساعدتك في كتابة النصوص و حل المشاكل البرمجية 🤓.\nيمكنك الان البدأ بإستعمالي ^-^",
-                buttons: [
-                  botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
-                ],
-              });
-            });
-        }
-      });
+                        })
+                                .catch(error => {
+                                  console.error('Error signing data:', error);
+                                });
+                              } else {
+                                kg({t: time, m: message.message.text})
+                                .then(async (signature) => {
+                                  conv.push({ "role": "user", "content": message.message.text })
+                                  const data = {
+                                    messages: conv,
+                                    time: time,
+                                    pass: null,
+                                    sign: signature,
+                                  };
+                                  botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
+                                    try {
+                                      const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
+                                    conv.push({ "role": "assistant", "content": response.data });
+                                    await updateUser(senderId, {time: timer, data: conv })
+                                    .then((data, error) => {
+                                      if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
+                                      
+                                      botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                                        if (response.data.length > 2000) {
+                                          const textChunks = splitTextIntoChunks(response.data, 1600);
+                                          textChunks.forEach((x) => {
+                                            botly.sendText({id: senderId, text: x,
+                                              quick_replies: [
+                                                botly.createQuickReply("👍", "up"),
+                                                botly.createQuickReply("👎", "down")]});
+                                              })
+                                            } else {
+                                              botly.sendText({id: senderId, text: response.data,
+                                                quick_replies: [
+                                                  botly.createQuickReply("👍", "up"),
+                                                  botly.createQuickReply("👎", "down")]});
+                                                }
+                                              });
+                                            });
+                                    } catch (error) {
+                                      if (error.response.status == 504) {
+                                        botly.sendButtons({
+                                          id: senderId,
+                                          text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
+                                          buttons: [
+                                            botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
+                                          ]
+                                        });
+                                      } else {
+                                        console.log("Other ERR : ", error.response.status)
+                                      }
+                                    }
+                                          });
+                                        })
+                                        .catch(error => {
+                                          console.error('Error signing data:', error);
+                                        });
+                                      }
+                                    }
+                                  } else {
+                                    await createUser({uid: senderId, time: timer, data: [] })
+                                    .then((data, error) => {
+                                      botly.sendButtons({
+                                        id: senderId,
+                                        text: "مرحبا 💬.\nأنا نوتي 🤗 روبوت ذكاء صناعي مدعم بـGPT 3.5 يمكنك سؤالي عن أي معلومات تحتاجها ✨\nاستطيع مساعدتك في كتابة النصوص و حل المشاكل البرمجية 🤓.\nيمكنك الان البدأ بإستعمالي ^-^",
+                                        buttons: [
+                                          botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
+                                        ],
+                                      });
+                                    });
+                                  }
+                                });
       } else if (message.message.attachments[0].payload.sticker_id) {
         //botly.sendText({id: senderId, text: "(Y)"});
       } else if (message.message.attachments[0].type == "image") {
