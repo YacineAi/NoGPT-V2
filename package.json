@@ -1,0 +1,19 @@
+{
+  "name": "nogpt",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.26.0",
+    "axios": "^1.4.0",
+    "botly": "^1.6.2",
+    "crypto": "^1.0.1",
+    "express": "^4.18.2"
+  }
+}
