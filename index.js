@@ -127,12 +127,12 @@ const onMessage = async (senderId, message) => {
                   let concatenatedContent = '';
 
                   lines.forEach(line => {
-                    // Extracting content from lines
                     const match = line.match(/"content": "([^"]*)"/);
                     if (match && match[1]) {
                       const content = match[1];
                       const decodedContent = content.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
-                      concatenatedContent += decodedContent;
+                      const processedContent = decodedContent.replace(/\\n/g, '\n'); // Replace \\n with actual newline \n
+                      concatenatedContent += processedContent;
                     }
                   });
                   
@@ -190,12 +190,12 @@ const onMessage = async (senderId, message) => {
                   let concatenatedContent = '';
 
                   lines.forEach(line => {
-                    // Extracting content from lines
                     const match = line.match(/"content": "([^"]*)"/);
                     if (match && match[1]) {
                       const content = match[1];
                       const decodedContent = content.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
-                      concatenatedContent += decodedContent;
+                      const processedContent = decodedContent.replace(/\\n/g, '\n'); // Replace \\n with actual newline \n
+                      concatenatedContent += processedContent;
                     }
                   });
                   
@@ -251,12 +251,12 @@ const onMessage = async (senderId, message) => {
                   let concatenatedContent = '';
 
                   lines.forEach(line => {
-                    // Extracting content from lines
                     const match = line.match(/"content": "([^"]*)"/);
                     if (match && match[1]) {
                       const content = match[1];
                       const decodedContent = content.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
-                      concatenatedContent += decodedContent;
+                      const processedContent = decodedContent.replace(/\\n/g, '\n'); // Replace \\n with actual newline \n
+                      concatenatedContent += processedContent;
                     }
                   });
 
