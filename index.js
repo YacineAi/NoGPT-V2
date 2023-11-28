@@ -90,25 +90,11 @@ function splitTextIntoChunks(text, chunkSize) {
   return chunks;
 };
 
-const Pg = async (data) => {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash('sha256');
-    hash.update(data);
-    resolve(hash.digest('hex'));
-  });
-};
-
-const kg = async (t) => {
-  const { t: e, m: n } = t;
-  const a = `${e}:${n}:${process.env.HashKey}`;
-  return await Pg(a);
-};
-
 /* ----- HANDELS ----- */
 
 const headers2 = {
-  "content-type": 'text/plain;charset=UTF-8',
-  "Referer": `https://${process.env.GPTS}/`
+  'accept-language': 'en,ar-DZ;q=0.9,ar;q=0.8',
+  'content-type': 'application/json',
 };
 const onMessage = async (senderId, message) => {
   /*
@@ -120,31 +106,44 @@ const onMessage = async (senderId, message) => {
     })
     */
     const timer = new Date().getTime() + 1 * 60 * 60 * 1000;
-    const time = Date.now();
+    //const time = Date.now();
     if (message.message.text) {
       const user = await userDb(senderId);
       botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.MARK_SEEN}, async () => {
         if (user[0]) {
           if (Date.now() > user[0].time) {
-            kg({t: time, m: message.message.text})
-            .then(async (signature) => {
-              var reset = [{ role: 'user', content: message.message.text }];
+            var reset = [{ role: 'user', content: message.message.text }];
               const data = {
-                messages: reset,
-                time: time,
-                pass: null,
-                sign: signature,
+                user_id: 0,
+                token: 0,
+                msg: reset,
+                model: 'gpt-3.5-turbo',
               };
               botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
                 try {
-                  const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
-                reset.push({ "role": "assistant", "content": response.data });
+                  const response = await axios.post(`https://${process.env.SITE}/fastapi/api/chat`, data, { headers2 });
+
+                  const lines = response.data.split('\n');
+                  let concatenatedContent = '';
+
+                  lines.forEach(line => {
+                    // Extracting content from lines
+                    const match = line.match(/"content": "([^"]*)"/);
+                    if (match && match[1]) {
+                      const content = match[1];
+                      const decodedContent = content.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
+                      concatenatedContent += decodedContent;
+                    }
+                  });
+                  
+                  reset.push({ "role": "assistant", "content": concatenatedContent });
+
                   await updateUser(senderId, {time: timer, data: reset })
                   .then((data, error) => {
                     if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
                     botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                      if (response.data.length > 2000) {
-                        const textChunks = splitTextIntoChunks(response.data, 1600);
+                      if (concatenatedContent.length > 2000) {
+                        const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
                         textChunks.forEach((x) => {
                           botly.sendText({id: senderId, text: x,
                             quick_replies: [
@@ -152,7 +151,7 @@ const onMessage = async (senderId, message) => {
                               botly.createQuickReply("👎", "down")]});
                             })
                           } else {
-                            botly.sendText({id: senderId, text: response.data,
+                            botly.sendText({id: senderId, text: concatenatedContent,
                               quick_replies: [
                                 botly.createQuickReply("👍", "up"),
                                 botly.createQuickReply("👎", "down")]});
@@ -160,7 +159,7 @@ const onMessage = async (senderId, message) => {
                             });
                           });
                 } catch (error) {
-                  if (error.response.status == 504) {
+                  if (error.response.status == 429) {
                     botly.sendButtons({
                       id: senderId,
                       text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
@@ -172,137 +171,145 @@ const onMessage = async (senderId, message) => {
                     console.log("Other ERR : ", error.response.status)
                   }
                 }
-                        });
-                      })
-                      .catch(error => {
-                        console.error('Error signing data:', error);
-                      });
-                    } else {
-                      var conv = user[0].data;
-                      if (user[0].data.length > 10) {
-                        kg({t: time, m: message.message.text})
-                        .then(async (signature) => {
-                          var reset = [{ role: 'user', content: message.message.text }];
-                          const data = {
-                            messages: reset,
-                            time: time,
-                            pass: null,
-                            sign: signature,
-                          };
-                          botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-                            try {
-                              const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
-                              reset.push({ "role": "assistant", "content": response.data });
-                            await updateUser(senderId, {time: timer, data: reset})
-                            .then((data, error) => {
-                              if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
-                              botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                                if (response.data.length > 2000) {
-                                  const textChunks = splitTextIntoChunks(response.data, 1600);
-                                  textChunks.forEach((x) => {
-                                    botly.sendText({id: senderId, text: x,
-                                      quick_replies: [
-                                        botly.createQuickReply("👍", "up"),
-                                        botly.createQuickReply("👎", "down")
-                                      ]
-                                    });
-                                  });
-                                } else {
-                                  botly.sendText({id: senderId, text: response.data,
-                                    quick_replies: [
-                                      botly.createQuickReply("👍", "up"),
-                                      botly.createQuickReply("👎", "down")
-                                    ]
-                                  });
-                                }
-                              });
-                            });
-                            } catch (error) {
-                              if (error.response.status == 504) {
-                                botly.sendButtons({
-                                  id: senderId,
-                                  text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
-                                  buttons: [
-                                    botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
-                                  ]
-                                });
-                              } else {
-                                console.log("Other ERR : ", error.response.status)
+              });
+          } else {
+            var conv = user[0].data;
+            if (user[0].data.length > 10) {
+              var reset = [{ role: 'user', content: message.message.text }];
+              const data = {
+                user_id: 0,
+                token: 0,
+                msg: reset,
+                model: 'gpt-3.5-turbo',
+              };
+              botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
+                try {
+                  const response = await axios.post(`https://${process.env.SITE}/fastapi/api/chat`, data, { headers2 });
+
+                  const lines = response.data.split('\n');
+                  let concatenatedContent = '';
+
+                  lines.forEach(line => {
+                    // Extracting content from lines
+                    const match = line.match(/"content": "([^"]*)"/);
+                    if (match && match[1]) {
+                      const content = match[1];
+                      const decodedContent = content.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
+                      concatenatedContent += decodedContent;
+                    }
+                  });
+                  
+                  reset.push({ "role": "assistant", "content": concatenatedContent });
+                  
+                  await updateUser(senderId, {time: timer, data: reset })
+                  .then((data, error) => {
+                    if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
+                    botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                      if (concatenatedContent.length > 2000) {
+                        const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
+                        textChunks.forEach((x) => {
+                          botly.sendText({id: senderId, text: x,
+                            quick_replies: [
+                              botly.createQuickReply("👍", "up"),
+                              botly.createQuickReply("👎", "down")]});
+                            })
+                          } else {
+                            botly.sendText({id: senderId, text: concatenatedContent,
+                              quick_replies: [
+                                botly.createQuickReply("👍", "up"),
+                                botly.createQuickReply("👎", "down")]});
                               }
-                            }
+                            });
                           });
-                        })
-                                .catch(error => {
-                                  console.error('Error signing data:', error);
-                                });
-                              } else {
-                                kg({t: time, m: message.message.text})
-                                .then(async (signature) => {
-                                  conv.push({ "role": "user", "content": message.message.text })
-                                  const data = {
-                                    messages: conv,
-                                    time: time,
-                                    pass: null,
-                                    sign: signature,
-                                  };
-                                  botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-                                    try {
-                                      const response = await axios.post(`https://${process.env.GPTS}/api/generate`, data, { headers2 });
-                                    conv.push({ "role": "assistant", "content": response.data });
-                                    await updateUser(senderId, {time: timer, data: conv })
-                                    .then((data, error) => {
-                                      if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
-                                      
-                                      botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                                        if (response.data.length > 2000) {
-                                          const textChunks = splitTextIntoChunks(response.data, 1600);
-                                          textChunks.forEach((x) => {
-                                            botly.sendText({id: senderId, text: x,
-                                              quick_replies: [
-                                                botly.createQuickReply("👍", "up"),
-                                                botly.createQuickReply("👎", "down")]});
-                                              })
-                                            } else {
-                                              botly.sendText({id: senderId, text: response.data,
-                                                quick_replies: [
-                                                  botly.createQuickReply("👍", "up"),
-                                                  botly.createQuickReply("👎", "down")]});
-                                                }
-                                              });
-                                            });
-                                    } catch (error) {
-                                      if (error.response.status == 504) {
-                                        botly.sendButtons({
-                                          id: senderId,
-                                          text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
-                                          buttons: [
-                                            botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
-                                          ]
-                                        });
-                                      } else {
-                                        console.log("Other ERR : ", error.response.status)
-                                      }
-                                    }
-                                          });
-                                        })
-                                        .catch(error => {
-                                          console.error('Error signing data:', error);
-                                        });
-                                      }
-                                    }
-                                  } else {
-                                    await createUser({uid: senderId, time: timer, data: [] })
-                                    .then((data, error) => {
-                                      botly.sendButtons({
-                                        id: senderId,
-                                        text: "مرحبا 💬.\nأنا نوتي 🤗 روبوت ذكاء صناعي مدعم بـGPT 3.5 يمكنك سؤالي عن أي معلومات تحتاجها ✨\nاستطيع مساعدتك في كتابة النصوص و حل المشاكل البرمجية 🤓.\nيمكنك الان البدأ بإستعمالي ^-^",
-                                        buttons: [
-                                          botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
-                                        ],
-                                      });
-                                    });
-                                  }
-                                });
+                } catch (error) {
+                  if (error.response.status == 429) {
+                    botly.sendButtons({
+                      id: senderId,
+                      text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
+                      buttons: [
+                        botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
+                      ]
+                    });
+                  } else {
+                    console.log("Other ERR : ", error.response.status)
+                  }
+                }
+              });
+            } else {
+              conv.push({ "role": "user", "content": message.message.text })
+              const data = {
+                user_id: 0,
+                token: 0,
+                msg: conv,
+                model: 'gpt-3.5-turbo',
+              };
+              botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
+                try {
+                  const response = await axios.post(`https://${process.env.SITE}/fastapi/api/chat`, data, { headers2 });
+
+                  const lines = response.data.split('\n');
+                  let concatenatedContent = '';
+
+                  lines.forEach(line => {
+                    // Extracting content from lines
+                    const match = line.match(/"content": "([^"]*)"/);
+                    if (match && match[1]) {
+                      const content = match[1];
+                      const decodedContent = content.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
+                      concatenatedContent += decodedContent;
+                    }
+                  });
+
+                  conv.push({ "role": "assistant", "content": concatenatedContent });
+                  await updateUser(senderId, {time: timer, data: conv })
+                  .then((data, error) => {
+                    if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
+                    botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                      if (concatenatedContent.length > 2000) {
+                        const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
+                        textChunks.forEach((x) => {
+                          botly.sendText({id: senderId, text: x,
+                            quick_replies: [
+                              botly.createQuickReply("👍", "up"),
+                              botly.createQuickReply("👎", "down")]});
+                            })
+                          } else {
+                            botly.sendText({id: senderId, text: concatenatedContent,
+                              quick_replies: [
+                                botly.createQuickReply("👍", "up"),
+                                botly.createQuickReply("👎", "down")]});
+                              }
+                            });
+                          });
+                        } catch (error) {
+                          if (error.response.status == 429) {
+                            botly.sendButtons({
+                              id: senderId,
+                              text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
+                              buttons: [
+                                botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
+                              ]
+                            });
+                          } else {
+                            console.log("Other ERR : ", error.response.status)
+                          }
+                        }
+                      });
+                    }
+                  }
+                } else {
+                  await createUser({uid: senderId, time: timer, data: [] })
+                  .then((data, error) => {
+                    botly.sendButtons({
+                      id: senderId,
+                      text: "مرحبا 💬.\nأنا نوتي 🤗 روبوت ذكاء صناعي مدعم بـGPT 3.5 يمكنك سؤالي عن أي معلومات تحتاجها ✨\nاستطيع مساعدتك في كتابة النصوص و حل المشاكل البرمجية 🤓.\nيمكنك الان البدأ بإستعمالي ^-^",
+                      buttons: [
+                        botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
+                      ],
+                    });
+                  });
+                }
+              });
       } else if (message.message.attachments[0].payload.sticker_id) {
         //botly.sendText({id: senderId, text: "(Y)"});
       } else if (message.message.attachments[0].type == "image") {
