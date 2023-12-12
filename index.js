@@ -111,7 +111,7 @@ const onMessage = async (senderId, message) => {
       const user = await userDb(senderId);
       botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.MARK_SEEN}, async () => {
         if (user[0]) {
-          /*
+          
           if (Date.now() > user[0].time) {
             var reset = [{ role: 'user', content: message.message.text }];
               const data = {
@@ -298,11 +298,11 @@ const onMessage = async (senderId, message) => {
                       });
                     }
                   }
-                  */
+                  
                 } else {
                   await createUser({uid: senderId, time: timer, data: [] })
                   .then((data, error) => {
-                    /*
+                    
               botly.sendButtons({
                 id: senderId,
                 text: "مرحبا 💬.\nأنا نوتي 🤗 روبوت ذكاء صناعي مدعم بـGPT 3.5 يمكنك سؤالي عن أي معلومات تحتاجها ✨\nاستطيع مساعدتك في كتابة النصوص و حل المشاكل البرمجية 🤓.\nيمكنك الان البدأ بإستعمالي ^-^",
@@ -310,14 +310,15 @@ const onMessage = async (senderId, message) => {
                   botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
                 ],
               });
-              */
-              botly.sendButtons({
+              
+              bot/*ly.sendButtons({
                 id: senderId,
                 text: "مرحبا 💜\nإذا كنت ترى هذه الرسالة فهذا مؤسف 😟 تم إيقاف الصفحة الان!\nالسبب : الصفحة تتطلب الكثير من المال لتشغيلها.\nلا يوجد موعد محدد لعودتها 🤷🏻‍♂️. يمكن أن ترجع غدا او الشهر القادم.\nإذا كانت الصفحة سترجع سيتم نشر تحديث على حسابي أولا 👇🏻\nfacebook.com/0xNoti\nشكرا لكم.",
                 buttons: [
                   botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
                 ],
               });
+              */
                   });
                 }
               });
