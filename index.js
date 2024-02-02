@@ -146,16 +146,10 @@ const onMessage = async (senderId, message) => {
                       if (concatenatedContent.length > 2000) {
                         const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
                         textChunks.forEach((x) => {
-                          botly.sendText({id: senderId, text: x,
-                            quick_replies: [
-                              botly.createQuickReply("👍", "up"),
-                              botly.createQuickReply("👎", "down")]});
+                          botly.sendText({id: senderId, text: x });
                             })
                           } else {
-                            botly.sendText({id: senderId, text: concatenatedContent,
-                              quick_replies: [
-                                botly.createQuickReply("👍", "up"),
-                                botly.createQuickReply("👎", "down")]});
+                            botly.sendText({id: senderId, text: concatenatedContent });
                               }
                             });
                           });
@@ -209,16 +203,10 @@ const onMessage = async (senderId, message) => {
                       if (concatenatedContent.length > 2000) {
                         const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
                         textChunks.forEach((x) => {
-                          botly.sendText({id: senderId, text: x,
-                            quick_replies: [
-                              botly.createQuickReply("👍", "up"),
-                              botly.createQuickReply("👎", "down")]});
+                          botly.sendText({id: senderId, text: x });
                             })
                           } else {
-                            botly.sendText({id: senderId, text: concatenatedContent,
-                              quick_replies: [
-                                botly.createQuickReply("👍", "up"),
-                                botly.createQuickReply("👎", "down")]});
+                            botly.sendText({id: senderId, text: concatenatedContent });
                               }
                             });
                           });
@@ -269,16 +257,10 @@ const onMessage = async (senderId, message) => {
                       if (concatenatedContent.length > 2000) {
                         const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
                         textChunks.forEach((x) => {
-                          botly.sendText({id: senderId, text: x,
-                            quick_replies: [
-                              botly.createQuickReply("👍", "up"),
-                              botly.createQuickReply("👎", "down")]});
+                          botly.sendText({id: senderId, text: x });
                             })
                           } else {
-                            botly.sendText({id: senderId, text: concatenatedContent,
-                              quick_replies: [
-                                botly.createQuickReply("👍", "up"),
-                                botly.createQuickReply("👎", "down")]});
+                            botly.sendText({id: senderId, text: concatenatedContent });
                               }
                             });
                           });
