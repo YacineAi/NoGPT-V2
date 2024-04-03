@@ -163,7 +163,7 @@ const onMessage = async (senderId, message) => {
                       ]
                     });
                   } else {
-                    console.log("Other ERR : ", error.response.status)
+                    console.log("Other ERR : ", error.response)
                   }
                 }
               });
@@ -220,7 +220,7 @@ const onMessage = async (senderId, message) => {
                       ]
                     });
                   } else {
-                    console.log("Other ERR : ", error.response.status)
+                    console.log("Other ERR : ", error.response)
                   }
                 }
               });
@@ -274,7 +274,7 @@ const onMessage = async (senderId, message) => {
                               ]
                             });
                           } else {
-                            console.log("Other ERR : ", error.response.status)
+                            console.log("Other ERR : ", error.response)
                           }
                         }
                       });
