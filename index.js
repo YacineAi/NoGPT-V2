@@ -154,7 +154,7 @@ const onMessage = async (senderId, message) => {
                             });
                           });
                 } catch (error) {
-                  console.log("Other ERR : ", error.response)
+                  console.log("Other ERR : ", error)
                   /*
                   if (error.response.status == 429) {
                     botly.sendButtons({
