@@ -154,7 +154,6 @@ const onMessage = async (senderId, message) => {
                             });
                           });
                 } catch (error) {
-                  console.log("Other ERR : ", error)
                   /*
                   if (error.response.status == 429) {
                     botly.sendButtons({
@@ -214,6 +213,7 @@ const onMessage = async (senderId, message) => {
                             });
                           });
                 } catch (error) {
+                  /*
                   if (error.response.status == 429) {
                     botly.sendButtons({
                       id: senderId,
@@ -225,6 +225,7 @@ const onMessage = async (senderId, message) => {
                   } else {
                     console.log("Other ERR : ", error.response)
                   }
+                  */
                 }
               });
             } else {
@@ -268,6 +269,7 @@ const onMessage = async (senderId, message) => {
                             });
                           });
                         } catch (error) {
+                          /*
                           if (error.response.status == 429) {
                             botly.sendButtons({
                               id: senderId,
@@ -279,6 +281,7 @@ const onMessage = async (senderId, message) => {
                           } else {
                             console.log("Other ERR : ", error.response)
                           }
+                          */
                         }
                       });
                     }
