@@ -146,10 +146,10 @@ const onMessage = async (senderId, message) => {
                       if (concatenatedContent.length > 2000) {
                         const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
                         textChunks.forEach((x) => {
-                          botly.sendText({id: senderId, text: x + "\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
+                          botly.sendText({id: senderId, text: x + "\n\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
                             })
                           } else {
-                            botly.sendText({id: senderId, text: concatenatedContent + "\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
+                            botly.sendText({id: senderId, text: concatenatedContent + "\n\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
                               }
                             });
                           });
@@ -205,10 +205,10 @@ const onMessage = async (senderId, message) => {
                       if (concatenatedContent.length > 2000) {
                         const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
                         textChunks.forEach((x) => {
-                          botly.sendText({id: senderId, text: x + "\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
+                          botly.sendText({id: senderId, text: x + "\n\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
                             })
                           } else {
-                            botly.sendText({id: senderId, text: concatenatedContent + "\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
+                            botly.sendText({id: senderId, text: concatenatedContent + "\n\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
                               }
                             });
                           });
@@ -264,7 +264,7 @@ const onMessage = async (senderId, message) => {
                           botly.sendText({id: senderId, text: x });
                             })
                           } else {
-                            botly.sendText({id: senderId, text: concatenatedContent + "\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
+                            botly.sendText({id: senderId, text: concatenatedContent + "\n\nلضمان متابعة تقديم الخدمة دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
                               }
                             });
                           });
