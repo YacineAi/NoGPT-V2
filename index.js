@@ -17,15 +17,6 @@ app.get("/", function(_req, res) {
 /* ----- ESSENTIALS ----- */
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-const headers = {
-  'Accept-Encoding': 'gzip',
-  'api-key': process.env.HTOKEN,
-  'Connection': 'Keep-Alive',
-  'Content-Length': '100',
-  'Content-Type': 'application/json',
-  'Host': process.env.HIDDEN,
-  'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9; ASUS_I003DD Build/PI)'
-};
 /* ----- MAGIC ----- */
 app.post('/webhook', (req, res) => {
  // console.log(req.body)
