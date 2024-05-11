@@ -112,7 +112,8 @@ const onMessage = async (senderId, message) => {
             const data = {"model": "gpt-3.5-turbo","messages": [{ "role": "user", "content": message.message.text }],"max_tokens": 2048};
             
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-              const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
+              try {
+                const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
                 'Accept-Encoding': 'gzip',
                 'api-key': process.env.HTOKEN,
                 'Connection': 'Keep-Alive',
@@ -131,13 +132,27 @@ const onMessage = async (senderId, message) => {
                   botly.sendText({id: senderId, text: response.data.choices[0].message.content + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
                 });
               });
+              } catch (error) {
+                if (error.response.status == 400 && error.response.data.error.code == "content_filter") {
+                  botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
+                } else {
+                  botly.sendButtons({
+                    id: senderId,
+                    text: "حدث شيئ خاطئ!. إذا تابع الخطأ في الظهور راسل المطور",
+                    buttons: [
+                      botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
+                    ],
+                  });
+                }
+              }
             });
           } else {
           var conv = user[0].data;
           conv.push({ "role": "user", "content": message.message.text })
           const data = {"model": "gpt-3.5-turbo", "messages": conv,"max_tokens": 2048};
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-              const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
+              try {
+                const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
                 'Accept-Encoding': 'gzip',
                 'api-key': process.env.HTOKEN,
                 'Connection': 'Keep-Alive',
@@ -156,6 +171,19 @@ const onMessage = async (senderId, message) => {
                   botly.sendText({id: senderId, text: response.data.choices[0].message.content + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
                 });
               });
+              } catch (error) {
+                if (error.response.status == 400 && error.response.data.error.code == "content_filter") {
+                  botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
+                } else {
+                  botly.sendButtons({
+                    id: senderId,
+                    text: "حدث شيئ خاطئ!. إذا تابع الخطأ في الظهور راسل المطور",
+                    buttons: [
+                      botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
+                    ],
+                  });
+                }
+              }
             });
           }
         } else {
