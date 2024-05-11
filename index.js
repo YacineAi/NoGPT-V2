@@ -127,7 +127,15 @@ const onMessage = async (senderId, message) => {
             };
             
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-              const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers });
+              const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
+                'Accept-Encoding': 'gzip',
+                'api-key': process.env.HTOKEN,
+                'Connection': 'Keep-Alive',
+                'Content-Length': data.length,
+                'Content-Type': 'application/json',
+                'Host': process.env.HIDDEN,
+                'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9; ASUS_I003DD Build/PI)'
+              }});
               reset.push({ "role": "user", "content": message.message.text }, { "role": "assistant", "content": response.data.choices[0].message.content });
               await updateUser(senderId, {time: timer, data: reset })
               .then((data, error) => {
@@ -148,7 +156,15 @@ const onMessage = async (senderId, message) => {
             "max_tokens": 2048
           };
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-              const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers });
+              const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
+                'Accept-Encoding': 'gzip',
+                'api-key': process.env.HTOKEN,
+                'Connection': 'Keep-Alive',
+                'Content-Length': data.length,
+                'Content-Type': 'application/json',
+                'Host': process.env.HIDDEN,
+                'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9; ASUS_I003DD Build/PI)'
+              }});
               conv.push({ "role": "assistant", "content": response.data.choices[0].message.content });
               await updateUser(senderId, {time: timer, data: conv })
               .then((data, error) => {
