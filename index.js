@@ -118,13 +118,7 @@ const onMessage = async (senderId, message) => {
         if (user[0]) {
           if (Date.now() > user[0].time) {
             var reset = [];
-            const data = {
-              "model": "gpt-3.5-turbo",
-              "messages": [
-                { "role": "user", "content": message.message.text }
-              ],
-              "max_tokens": 2048
-            };
+            const data = {"model": "gpt-3.5-turbo","messages": [{ "role": "user", "content": message.message.text }],"max_tokens": 2048};
             
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
               const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
@@ -150,11 +144,7 @@ const onMessage = async (senderId, message) => {
           } else {
           var conv = user[0].data;
           conv.push({ "role": "user", "content": message.message.text })
-          const data = {
-            "model": "gpt-3.5-turbo",
-            "messages": conv,
-            "max_tokens": 2048
-          };
+          const data = {"model": "gpt-3.5-turbo", "messages": conv,"max_tokens": 2048};
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
               const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
                 'Accept-Encoding': 'gzip',
