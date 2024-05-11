@@ -156,6 +156,7 @@ const onMessage = async (senderId, message) => {
             });
           } else {
           var conv = user[0].data;
+          
           conv.push({ "role": "user", "content": message.message.text })
           const data = {"model": "gpt-3.5-turbo", "messages": conv,"max_tokens": 2048};
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
