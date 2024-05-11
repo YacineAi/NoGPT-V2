@@ -134,7 +134,9 @@ const onMessage = async (senderId, message) => {
               });
               } catch (error) {
                 if (error.response.status == 400 && error.response.data.error.code == "content_filter") {
-                  botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
+                  botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                    botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
+                  });
                 } else if (error.response.status == 400 && error.response.data.error.code == "context_length_exceeded") {
                   await updateUser(senderId, {time: timer, data: [] })
                   .then((data, error) => {
@@ -156,7 +158,7 @@ const onMessage = async (senderId, message) => {
             });
           } else {
           var conv = user[0].data;
-          
+
           conv.push({ "role": "user", "content": message.message.text })
           const data = {"model": "gpt-3.5-turbo", "messages": conv,"max_tokens": 2048};
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
@@ -182,7 +184,9 @@ const onMessage = async (senderId, message) => {
               });
               } catch (error) {
                 if (error.response.status == 400 && error.response.data.error.code == "content_filter") {
-                  botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
+                  botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                    botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
+                  });
                 } else if (error.response.status == 400 && error.response.data.error.code == "context_length_exceeded") {
                   await updateUser(senderId, {time: timer, data: [] })
                   .then((data, error) => {
