@@ -174,6 +174,8 @@ const onMessage = async (senderId, message) => {
               } catch (error) {
                 if (error.response.status == 400 && error.response.data.error.code == "content_filter") {
                   botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
+                } else if (error.response.status == 400 && error.response.data.error.code == "context_length_exceeded") {
+                  botly.sendText({id: senderId, text: "يرجى ملاحظة أن النص المرسل يتجاوز الحد المسموح به من الأحرف. يرجى تقليل النص للامتثال الكامل مع القواعد المحددة. شكرًا لتفهمك وامتثالك."});
                 } else {
                   botly.sendButtons({
                     id: senderId,
