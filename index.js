@@ -17,6 +17,15 @@ app.get("/", function(_req, res) {
 /* ----- ESSENTIALS ----- */
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+const headers = {
+  'Accept-Encoding': 'gzip',
+  'api-key': process.env.HTOKEN,
+  'Connection': 'Keep-Alive',
+  //'Content-Length': '100',
+  'Content-Type': 'application/json',
+  'Host': process.env.HIDDEN,
+  'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9; ASUS_I003DD Build/PI)'
+};
 /* ----- MAGIC ----- */
 app.post('/webhook', (req, res) => {
  // console.log(req.body)
@@ -92,10 +101,6 @@ function splitTextIntoChunks(text, chunkSize) {
 
 /* ----- HANDELS ----- */
 
-const headers2 = {
-  'accept-language': 'en,ar-DZ;q=0.9,ar;q=0.8',
-  'content-type': 'application/json',
-};
 const onMessage = async (senderId, message) => {
   /*
   botly.sendButtons(
@@ -111,186 +116,54 @@ const onMessage = async (senderId, message) => {
       const user = await userDb(senderId);
       botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.MARK_SEEN}, async () => {
         if (user[0]) {
-          
           if (Date.now() > user[0].time) {
-            var reset = [{ role: 'user', content: message.message.text }];
-              const data = {
-                user_id: 0,
-                token: 0,
-                msg: reset,
-                model: 'gpt-3.5-turbo',
-              };
-              botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-                try {
-                  const response = await axios.post(`https://${process.env.SITE}/fastapi/api/chat`, data, { headers2 });
-
-                  const lines = response.data.split('\n');
-                  let concatenatedContent = '';
-
-                  lines.forEach(line => {
-                    const match = line.match(/"content": "([^"]*)"/);
-                    if (match && match[1]) {
-                      const content = match[1];
-                      const decodedContent = content.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
-                      const processedContent = decodedContent.replace(/\\n/g, '\n'); // Replace \\n with actual newline \n
-                      concatenatedContent += processedContent;
-                    }
-                  });
-                  
-                  reset.push({ "role": "assistant", "content": concatenatedContent });
-
-                  await updateUser(senderId, {time: timer, data: reset })
-                  .then((data, error) => {
-                    if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
-                    botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                      if (concatenatedContent.length > 2000) {
-                        const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
-                        textChunks.forEach((x) => {
-                          botly.sendText({id: senderId, text: x + "\n\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
-                            })
-                          } else {
-                            botly.sendText({id: senderId, text: concatenatedContent + "\n\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
-                              }
-                            });
-                          });
-                } catch (error) {
-                  /*
-                  if (error.response.status == 429) {
-                    botly.sendButtons({
-                      id: senderId,
-                      text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
-                      buttons: [
-                        botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
-                      ]
-                    });
-                  } else {
-                    console.log("Other ERR : ", error.response)
-                  }
-                  */
+            var reset = [];
+            const data = {
+              "model": "gpt-3.5-turbo",
+              "messages": [
+                { "role": "user", "content": message.message.text }
+              ],
+              "max_tokens": 2048
+            };
+            
+            botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
+              const response = await axios.post(`https://${process.env.HIDDEN}/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers });
+              reset.push({ "role": "user", "content": message.message.text }, { "role": "assistant", "content": response.data.choices[0].message.content });
+              await updateUser(senderId, {time: timer, data: reset })
+              .then((data, error) => {
+                if (error) {
+                    botly.sendText({id: senderId, text: "حدث خطأ"});
                 }
+                botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                  botly.sendText({id: senderId, text: response.data.choices[0].message.content + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
+                });
               });
+            });
           } else {
-            var conv = user[0].data;
-            if (user[0].data.length > 10) {
-              var reset = [{ role: 'user', content: message.message.text }];
-              const data = {
-                user_id: 0,
-                token: 0,
-                msg: reset,
-                model: 'gpt-3.5-turbo',
-              };
-              botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-                try {
-                  const response = await axios.post(`https://${process.env.SITE}/fastapi/api/chat`, data, { headers2 });
-
-                  const lines = response.data.split('\n');
-                  let concatenatedContent = '';
-
-                  lines.forEach(line => {
-                    const match = line.match(/"content": "([^"]*)"/);
-                    if (match && match[1]) {
-                      const content = match[1];
-                      const decodedContent = content.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
-                      const processedContent = decodedContent.replace(/\\n/g, '\n'); // Replace \\n with actual newline \n
-                      concatenatedContent += processedContent;
-                    }
-                  });
-                  
-                  reset.push({ "role": "assistant", "content": concatenatedContent });
-                  
-                  await updateUser(senderId, {time: timer, data: reset })
-                  .then((data, error) => {
-                    if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
-                    botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                      if (concatenatedContent.length > 2000) {
-                        const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
-                        textChunks.forEach((x) => {
-                          botly.sendText({id: senderId, text: x + "\n\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
-                            })
-                          } else {
-                            botly.sendText({id: senderId, text: concatenatedContent + "\n\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
-                              }
-                            });
-                          });
-                } catch (error) {
-                  /*
-                  if (error.response.status == 429) {
-                    botly.sendButtons({
-                      id: senderId,
-                      text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
-                      buttons: [
-                        botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
-                      ]
-                    });
-                  } else {
-                    console.log("Other ERR : ", error.response)
-                  }
-                  */
+          var conv = user[0].data;
+          conv.push({ "role": "user", "content": message.message.text })
+          const data = {
+            "model": "gpt-3.5-turbo",
+            "messages": conv,
+            "max_tokens": 2048
+          };
+            botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
+              const response = await axios.post(`https://${process.env.HIDDEN}/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers });
+              conv.push({ "role": "assistant", "content": response.data.choices[0].message.content });
+              await updateUser(senderId, {time: timer, data: conv })
+              .then((data, error) => {
+                if (error) {
+                    botly.sendText({id: senderId, text: "حدث خطأ"});
                 }
+                botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                  botly.sendText({id: senderId, text: response.data.choices[0].message.content + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
+                });
               });
-            } else {
-              conv.push({ "role": "user", "content": message.message.text })
-              const data = {
-                user_id: 0,
-                token: 0,
-                msg: conv,
-                model: 'gpt-3.5-turbo',
-              };
-              botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
-                try {
-                  const response = await axios.post(`https://${process.env.SITE}/fastapi/api/chat`, data, { headers2 });
-
-                  const lines = response.data.split('\n');
-                  let concatenatedContent = '';
-
-                  lines.forEach(line => {
-                    const match = line.match(/"content": "([^"]*)"/);
-                    if (match && match[1]) {
-                      const content = match[1];
-                      const decodedContent = content.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
-                      const processedContent = decodedContent.replace(/\\n/g, '\n'); // Replace \\n with actual newline \n
-                      concatenatedContent += processedContent;
-                    }
-                  });
-
-                  conv.push({ "role": "assistant", "content": concatenatedContent });
-                  await updateUser(senderId, {time: timer, data: conv })
-                  .then((data, error) => {
-                    if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
-                    botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                      if (concatenatedContent.length > 2000) {
-                        const textChunks = splitTextIntoChunks(concatenatedContent, 1600);
-                        textChunks.forEach((x) => {
-                          botly.sendText({id: senderId, text: x });
-                            })
-                          } else {
-                            botly.sendText({id: senderId, text: concatenatedContent + "\n\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti" });
-                              }
-                            });
-                          });
-                        } catch (error) {
-                          /*
-                          if (error.response.status == 429) {
-                            botly.sendButtons({
-                              id: senderId,
-                              text: "الكثير من الطلبات 😵‍💫.\nتم إنهاء طلبك! يرجى إعادة إرسال الرسالة بعد ثواني ⌛.\nاذا تابعت هذه الرسالة 💬 في الظهور راسل المطور 👇🏻",
-                              buttons: [
-                                botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
-                              ]
-                            });
-                          } else {
-                            console.log("Other ERR : ", error.response)
-                          }
-                          */
-                        }
-                      });
-                    }
-                  }
-                  
-                } else {
-                  await createUser({uid: senderId, time: timer, data: [] })
-                  .then((data, error) => {
-                    
+            });
+          }
+        } else {
+          await createUser({uid: senderId, time: timer, data: [] })
+            .then((data, error) => {
               botly.sendButtons({
                 id: senderId,
                 text: "مرحبا 💬.\nأنا نوتي 🤗 روبوت ذكاء صناعي مدعم بـGPT 3.5 يمكنك سؤالي عن أي معلومات تحتاجها ✨\nاستطيع مساعدتك في كتابة النصوص و حل المشاكل البرمجية 🤓.\nيمكنك الان البدأ بإستعمالي ^-^",
@@ -298,18 +171,9 @@ const onMessage = async (senderId, message) => {
                   botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
                 ],
               });
-              /*
-              botly.sendButtons({
-                id: senderId,
-                text: "مرحبا 💜\nإذا كنت ترى هذه الرسالة فهذا مؤسف 😟 تم إيقاف الصفحة الان!\nالسبب : الصفحة تتطلب الكثير من المال لتشغيلها.\nلا يوجد موعد محدد لعودتها 🤷🏻‍♂️. يمكن أن ترجع غدا او الشهر القادم.\nإذا كانت الصفحة سترجع سيتم نشر تحديث على حسابي أولا 👇🏻\nfacebook.com/0xNoti\nشكرا لكم.",
-                buttons: [
-                  botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
-                ],
-              });
-              */
-                  });
-                }
-              });
+            });
+        }
+      });
       } else if (message.message.attachments[0].payload.sticker_id) {
         //botly.sendText({id: senderId, text: "(Y)"});
       } else if (message.message.attachments[0].type == "image") {
