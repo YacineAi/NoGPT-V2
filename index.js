@@ -109,7 +109,7 @@ const onMessage = async (senderId, message) => {
         if (user[0]) {
           if (Date.now() > user[0].time) {
             var reset = [];
-            const data = {"model": "gpt-3.5-turbo","messages": [{ "role": "user", "content": message.message.text }],"max_tokens": 2048};
+            const data = [{ "role": "user", "content": message.message.text }];
             
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
               try {
@@ -159,7 +159,7 @@ const onMessage = async (senderId, message) => {
           var conv = user[0].data;
 
           conv.push({ "role": "user", "content": message.message.text })
-          const data = {"model": "gpt-3.5-turbo", "messages": conv,"max_tokens": 2048};
+          const data = conv;
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
               try {
                 const response = await axios.post(`https://${process.env.SITE}/`, data, { headers : {
