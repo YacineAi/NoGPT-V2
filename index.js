@@ -131,6 +131,7 @@ const onMessage = async (senderId, message) => {
                 });
               });
               } catch (error) {
+                console.log("ERR 182 : ", error.response);
                 if (error.response.status == 400 && error.response.data.error.code == "content_filter") {
                   botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
                     botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
@@ -179,6 +180,7 @@ const onMessage = async (senderId, message) => {
                 });
               });
               } catch (error) {
+                console.log("ERR 182 : ", error.response);
                 if (error.response.status == 400 && error.response.data.error.code == "content_filter") {
                   botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
                     botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
