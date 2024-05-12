@@ -113,23 +113,21 @@ const onMessage = async (senderId, message) => {
             
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
               try {
-                const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
-                'Accept-Encoding': 'gzip',
-                'api-key': process.env.HTOKEN,
-                'Connection': 'Keep-Alive',
-                'Content-Length': data.length,
-                'Content-Type': 'application/json',
-                'Host': process.env.HIDDEN,
-                'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9; ASUS_I003DD Build/PI)'
-              }});
-              reset.push({ "role": "user", "content": message.message.text }, { "role": "assistant", "content": response.data.choices[0].message.content });
+                const response = await axios.post(`https://${process.env.SITE}/`, data, { headers : {
+                  'accept-encoding': 'gzip',
+                  //'content-length': 216,
+                  'content-type': 'application/json; charset=utf-8',
+                  'host': process.env.SITE,
+                  'user-agent': 'Dart/3.3 (dart:io)'
+                }});
+              reset.push({ "role": "user", "content": message.message.text }, { "role": "assistant", "content": response.data });
               await updateUser(senderId, {time: timer, data: reset })
               .then((data, error) => {
                 if (error) {
                     botly.sendText({id: senderId, text: "حدث خطأ"});
                 }
                 botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                  botly.sendText({id: senderId, text: response.data.choices[0].message.content + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
+                  botly.sendText({id: senderId, text: response.data + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
                 });
               });
               } catch (error) {
@@ -163,23 +161,21 @@ const onMessage = async (senderId, message) => {
           const data = {"model": "gpt-3.5-turbo", "messages": conv,"max_tokens": 2048};
             botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_ON}, async () => {
               try {
-                const response = await axios.post(`https://${process.env.HIDDEN}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2024-03-01-preview`, data, { headers : {
-                'Accept-Encoding': 'gzip',
-                'api-key': process.env.HTOKEN,
-                'Connection': 'Keep-Alive',
-                'Content-Length': data.length,
-                'Content-Type': 'application/json',
-                'Host': process.env.HIDDEN,
-                'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9; ASUS_I003DD Build/PI)'
-              }});
-              conv.push({ "role": "assistant", "content": response.data.choices[0].message.content });
+                const response = await axios.post(`https://${process.env.SITE}/`, data, { headers : {
+                  'accept-encoding': 'gzip',
+                  //'content-length': 216,
+                  'content-type': 'application/json; charset=utf-8',
+                  'host': process.env.SITE,
+                  'user-agent': 'Dart/3.3 (dart:io)'
+                }});
+              conv.push({ "role": "assistant", "content": response.data });
               await updateUser(senderId, {time: timer, data: conv })
               .then((data, error) => {
                 if (error) {
                     botly.sendText({id: senderId, text: "حدث خطأ"});
                 }
                 botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
-                  botly.sendText({id: senderId, text: response.data.choices[0].message.content + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
+                  botly.sendText({id: senderId, text: response.data + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
                 });
               });
               } catch (error) {
