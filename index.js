@@ -131,12 +131,11 @@ const onMessage = async (senderId, message) => {
                 });
               });
               } catch (error) {
-                console.log("ERR 182 : ", error.response.data);
-                if (error.response.status == 400 && error.response.data.error.code == "content_filter") {
+                if (error.response.status == 444) {
                   botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
                     botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
                   });
-                } else if (error.response.status == 400 && error.response.data.error.code == "context_length_exceeded") {
+                } else if (error.response.status == 444) {
                   await updateUser(senderId, {time: timer, data: [] })
                   .then((data, error) => {
                     if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
@@ -181,11 +180,11 @@ const onMessage = async (senderId, message) => {
               });
               } catch (error) {
                 console.log("ERR 182 : ", error.response.data);
-                if (error.response.status == 400 && error.response.data.error.code == "content_filter") {
+                if (error.response.status == 444) {
                   botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
                     botly.sendText({id: senderId, text: "يرجى الانتباه إلى أن رسالتك تتعارض مع سياسة OpenAI. نأمل أن تلتزم بشروط الاستخدام والسياسات المحددة لتجنب أي مخالفات مستقبلية."});
                   });
-                } else if (error.response.status == 400 && error.response.data.error.code == "context_length_exceeded") {
+                } else if (error.response.status == 444) {
                   await updateUser(senderId, {time: timer, data: [] })
                   .then((data, error) => {
                     if (error) { botly.sendText({id: senderId, text: "حدث خطأ"}); }
