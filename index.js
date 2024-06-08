@@ -144,6 +144,67 @@ const onMessage = async (senderId, message) => {
                     });
                   });
                 } else {
+
+                  try {
+                    const response = await axios({
+                        method: 'POST',
+                        url: `https://${process.env.SITE2}/stream`,
+                        headers: {
+                            'Accept': 'text/event-stream',
+                            'Accept-Encoding': 'gzip',
+                            'Connection': 'Keep-Alive',
+                            'Content-Type': 'application/json',
+                            'Host': process.env.SITE2,
+                            'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9; ASUS_I003DD Build/PI)'
+                        },
+                        data: {
+                            machineId: 'e3c9198f6f932f2e.315561717810617889',
+                            msg: data,
+                            token: 'eyJzdWIiOiIyMzQyZmczNHJ0MzR0MzQiLCJuYW1lIjoiSm9objM0NTM0NT',
+                            type: 0
+                        },
+                        responseType: 'stream'
+                    });
+                    
+                    let sentence = '';
+            
+                    response.data.on('data', (chunk) => {
+                        const data = chunk.toString();
+                        const lines = data.split('\n');
+                        lines.forEach(line => {
+                            if (line.trim().startsWith('data: ')) {
+                                const jsonString = line.trim().substring(6);
+                                try {
+                                    const json = JSON.parse(jsonString);
+            
+                                    if (json.choices && json.choices[0] && json.choices[0].delta) {
+                                        const delta = json.choices[0].delta;
+                                        if (delta && delta.content) {
+                                            sentence += delta.content;
+                                        }
+                                    }
+                                } catch (error) {
+                                    //console.error('Error parsing JSON: ', jsonString);
+                                }
+                            }
+                        });
+                    });
+            
+                    response.data.on('end', async () => {
+                      reset.push({ "role": "user", "content": message.message.text }, { "role": "assistant", "content": sentence });
+                      await updateUser(senderId, {time: timer, data: reset })
+                      .then((data, error) => {
+                        botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                          botly.sendText({id: senderId, text: sentence + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
+                        });
+                      });
+                      //console.log('Final sentence: ', sentence);
+                    });
+            
+                    response.data.on('error', (err) => {
+                        console.error('Error: ', err);
+                    });
+                } catch (error) {
                   botly.sendButtons({
                     id: senderId,
                     text: "حدث شيئ خاطئ!. إذا تابع الخطأ في الظهور راسل المطور",
@@ -151,6 +212,8 @@ const onMessage = async (senderId, message) => {
                       botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
                     ],
                   });
+                }
+
                 }
               }
             });
@@ -193,6 +256,70 @@ const onMessage = async (senderId, message) => {
                     });
                   });
                 } else {
+
+                  try {
+                    const response = await axios({
+                        method: 'POST',
+                        url: `https://${process.env.SITE2}/stream`,
+                        headers: {
+                            'Accept': 'text/event-stream',
+                            'Accept-Encoding': 'gzip',
+                            'Connection': 'Keep-Alive',
+                            'Content-Type': 'application/json',
+                            'Host': process.env.SITE2,
+                            'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 9; ASUS_I003DD Build/PI)'
+                        },
+                        data: {
+                            machineId: 'e3c9198f6f932f2e.315561717810617889',
+                            msg: data,
+                            token: 'eyJzdWIiOiIyMzQyZmczNHJ0MzR0MzQiLCJuYW1lIjoiSm9objM0NTM0NT',
+                            type: 0
+                        },
+                        responseType: 'stream'
+                    });
+                    
+                    let sentence = '';
+            
+                    response.data.on('data', (chunk) => {
+                        const data = chunk.toString();
+                        const lines = data.split('\n');
+                        lines.forEach(line => {
+                            if (line.trim().startsWith('data: ')) {
+                                const jsonString = line.trim().substring(6);
+                                try {
+                                    const json = JSON.parse(jsonString);
+            
+                                    if (json.choices && json.choices[0] && json.choices[0].delta) {
+                                        const delta = json.choices[0].delta;
+                                        if (delta && delta.content) {
+                                            sentence += delta.content;
+                                        }
+                                    }
+                                } catch (error) {
+                                    //console.error('Error parsing JSON: ', jsonString);
+                                }
+                            }
+                        });
+                    });
+            
+                    response.data.on('end', async() => {
+                      conv.push({ "role": "assistant", "content": sentence });
+                      await updateUser(senderId, {time: timer, data: conv })
+                      .then((data, error) => {
+                        if (error) {
+                          botly.sendText({id: senderId, text: "حدث خطأ"});
+                        }
+                        botly.sendAction({id: senderId, action: Botly.CONST.ACTION_TYPES.TYPING_OFF}, async () => {
+                          botly.sendText({id: senderId, text: sentence + "\n\n\n- - - ------( 📣💬💻 )------ - - -\nلضمان متابعة تقديم الخدمة يرجى دعمنا بمتابعة حساب صاحب الصفحة :\nhttps://facebook.com/0xNoti"});
+                        });
+                      });
+                      //console.log('Final sentence: ', sentence);
+                    });
+            
+                    response.data.on('error', (err) => {
+                        console.error('Error: ', err);
+                    });
+                } catch (error) {
                   botly.sendButtons({
                     id: senderId,
                     text: "حدث شيئ خاطئ!. إذا تابع الخطأ في الظهور راسل المطور",
@@ -200,6 +327,8 @@ const onMessage = async (senderId, message) => {
                       botly.createWebURLButton("حساب المطور 💻👤", "facebook.com/0xNoti/"),
                     ],
                   });
+                }
+
                 }
               }
             });
